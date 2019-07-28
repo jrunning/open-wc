@@ -25,10 +25,12 @@ export async function executeMixinGenerator(mixins, options = {}, Base = Generat
 
   // class Do extends mixins(Base) {}
   const inst = new Start();
-  inst.options = options;
+  inst.options = { ...inst.options, ...options };
 
   await inst.execute();
-  await inst.end();
+  if (!options.noEnd) {
+    await inst.end();
+  }
 }
 
 export const virtualFiles = [];

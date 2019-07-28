@@ -1,7 +1,9 @@
-import CommonRepoMixin from '../common-repo/index.js';
+import path from 'path';
+import { executeViaOptions } from '../app/executeViaOptions.js';
+import { CommonRepoMixin } from '../common-repo/index.js';
 
 /* eslint-disable no-console */
-const AppLitElementMixin = subclass =>
+export const AppLitElementMixin = subclass =>
   class extends CommonRepoMixin(subclass) {
     async execute() {
       await super.execute();
@@ -23,6 +25,17 @@ const AppLitElementMixin = subclass =>
       );
 
       await this.copyTemplates(`${__dirname}/templates/static/**/*`);
+
+      const pageOneOptions = {
+        ...this.options,
+        scaffoldType: 'wc-lit-element',
+        tagName: 'page-one',
+        destinationPath: path.join(process.cwd(), tagName, 'packages/page-one/'),
+        noEnd: true,
+      };
+      delete pageOneOptions.features;
+
+      await executeViaOptions(pageOneOptions);
     }
 
     async end() {
@@ -36,5 +49,3 @@ const AppLitElementMixin = subclass =>
       console.log('');
     }
   };
-
-export default AppLitElementMixin;
