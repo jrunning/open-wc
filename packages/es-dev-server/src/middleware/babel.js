@@ -1,5 +1,6 @@
 import minimatch from 'minimatch';
 import path from 'path';
+import stripAnsi from 'strip-ansi';
 import { getBodyAsString, toFilePath } from '../utils/utils.js';
 import { compatibilityModes, baseFileExtensions } from '../constants.js';
 import { sendMessageToActiveBrowsers } from './message-channel.js';
@@ -116,12 +117,20 @@ export function createBabelMiddleware(cfg) {
       ctx.body = compiled;
       return undefined;
     } catch (error) {
+      let errorMessage = error.message;
+
+      // replace babel error messages file path with the request url for readability
+      if (errorMessage.startsWith(filePath)) {
+        errorMessage = errorMessage.replace(filePath, ctx.url);
+      }
+
+      // babel errors add ansi color codes, which don't translate well to the browser
+      errorMessage = stripAnsi(errorMessage);
+
       // send compile error to browser for logging
-      ctx.body = `Error compiling: ${error.message}`;
+      ctx.body = `Error compiling: ${errorMessage}`;
       ctx.status = 500;
-      sendMessageToActiveBrowsers('error-message', JSON.stringify(error.message));
-      /* eslint-disable-next-line no-console */
-      console.error(error);
+      sendMessageToActiveBrowsers('error-message', JSON.stringify(errorMessage));
     }
     return undefined;
   }
